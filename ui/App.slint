@@ -4,7 +4,7 @@ import { ToggleTheme } from "components/toggle-theme.slint";
 import { Main } from "pages/main.slint";
 
 export component AppWindow inherits Window {
-    title: "TaskBoard — Slint Template";
+    title: "TaskBoard";
     in-out property <string> current_theme: "light";
     private property <Theme> theme: current_theme == "light" ? Light.theme : Dark.theme;
     private property <StatusColors> status: current_theme == "light" ? StatusLight.colors : StatusDark.colors;
