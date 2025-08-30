@@ -1,6 +1,6 @@
 [package]
 name = "taskboard"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
 description = "A modern task board application built with Slint and Rust"
 authors = ["José Augusto <josemoura212@gmail.com>"]

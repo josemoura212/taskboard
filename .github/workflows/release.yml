@@ -1,5 +1,8 @@
 name: Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -10,164 +13,45 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        toolchain: stable
-        targets: x86_64-pc-windows-msvc
-
-    - name: Cache Cargo dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-
-
-    - name: Install system dependencies
-      run: |
-        # Instalar dependências necessárias para Slint no Windows
-        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-        refreshenv
-
-    - name: Build release
-      run: |
-        cargo build --release --target x86_64-pc-windows-msvc
-        
-    - name: Create installer directory
-      run: |
-        mkdir installer
-        copy target\x86_64-pc-windows-msvc\release\taskboard.exe installer\
-        
-    - name: Create simple installer script
-      run: |
-        @"
-        @echo off
-        echo Installing TaskBoard...
-        if not exist "%PROGRAMFILES%\TaskBoard" mkdir "%PROGRAMFILES%\TaskBoard"
-        copy taskboard.exe "%PROGRAMFILES%\TaskBoard\"
-        echo.
-        echo TaskBoard installed successfully!
-        echo You can find it at: %PROGRAMFILES%\TaskBoard\taskboard.exe
-        echo.
-        echo Creating desktop shortcut...
-        powershell -Command "& {`$WshShell = New-Object -comObject WScript.Shell; `$Shortcut = `$WshShell.CreateShortcut('`$([Environment]::GetFolderPath('Desktop'))\TaskBoard.lnk'); `$Shortcut.TargetPath = '%PROGRAMFILES%\TaskBoard\taskboard.exe'; `$Shortcut.Save()}"
-        echo Desktop shortcut created!
-        pause
-        "@ | Out-File -FilePath installer\install.bat -Encoding ASCII
-
-    - name: Create portable package
-      run: |
-        mkdir taskboard-portable
-        copy target\x86_64-pc-windows-msvc\release\taskboard.exe taskboard-portable\
-        echo "TaskBoard Portable Version" > taskboard-portable\README.txt
-        echo "Simply run taskboard.exe to start the application." >> taskboard-portable\README.txt
-        
-    - name: Create ZIP packages
-      run: |
-        # Criar ZIP do instalador
-        Compress-Archive -Path installer\* -DestinationPath taskboard-installer-windows-x64.zip
-        
-        # Criar ZIP da versão portátil
-        Compress-Archive -Path taskboard-portable\* -DestinationPath taskboard-portable-windows-x64.zip
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-builds
-        path: |
-          taskboard-installer-windows-x64.zip
-          taskboard-portable-windows-x64.zip
-
   create-release:
-    needs: [build-windows]
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          # (optional) Path to changelog.
+          changelog: CHANGELOG.md
+          # (required) GitHub token for creating GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-assets:
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
       
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: windows-builds
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.26'
+
+      - name: Verify CMake installation
+        run: cmake --version
         
-    - name: Get tag name
-      id: tag_name
-      run: |
-        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        else
-          echo "TAG_NAME=dev-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
-        release_name: TaskBoard ${{ steps.tag_name.outputs.TAG_NAME }}
-        body: |
-          ## TaskBoard Release ${{ steps.tag_name.outputs.TAG_NAME }}
-          
-          ### 📦 Downloads
-          
-          **Windows:**
-          - `taskboard-installer-windows-x64.zip` - Instalador para Windows (64-bit)
-          - `taskboard-portable-windows-x64.zip` - Versão portátil para Windows (64-bit)
-          
-          ### 🚀 Installation
-          
-          **Windows Installer:**
-          1. Baixe o arquivo `taskboard-installer-windows-x64.zip`
-          2. Extraia o conteúdo
-          3. Execute `install.bat` como administrador
-          4. O aplicativo será instalado em `Program Files\TaskBoard`
-          5. Um atalho será criado na área de trabalho
-          
-          **Windows Portable:**
-          1. Baixe o arquivo `taskboard-portable-windows-x64.zip`
-          2. Extraia em qualquer pasta
-          3. Execute `taskboard.exe` diretamente
-          
-          ### 🔄 Changes
-          - Aplicação TaskBoard desenvolvida com Slint + Rust
-          - Interface gráfica moderna e responsiva
-          - Suporte nativo para Windows
-          
-        draft: false
-        prerelease: false
-
-    - name: Upload Windows Installer
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./taskboard-installer-windows-x64.zip
-        asset_name: taskboard-installer-windows-x64.zip
-        asset_content_type: application/zip
-
-    - name: Upload Windows Portable
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./taskboard-portable-windows-x64.zip
-        asset_name: taskboard-portable-windows-x64.zip
-        asset_content_type: application/zip
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          # (required) Nome do binário a ser construído e enviado
+          bin: taskboard
+          # (optional) Target triple
+          target: ${{ matrix.target }}
+          # (optional) On which platform to distribute the `.tar.gz` file.
+          tar: none
+          # (optional) On which platform to distribute the `.zip` file.
+          zip: windows
+          # (required) GitHub token for uploading assets to GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
