@@ -1,0 +1,78 @@
+export struct Theme {
+    bg: color,
+    surface: color,
+    text: color,
+    textSubtle: color,
+    border: color,
+    primary: color,
+    onPrimary: color,
+    radius: length,
+    gap: length,
+    padding: length,
+    shadow_color: color,
+    shadow_offset_x: length,
+    shadow_offset_y: length,
+    shadow_blur: length,
+}
+
+export global Light {
+    out property <Theme> theme: {
+        bg: #FAFAFA,
+        surface: #FFFFFF,
+        text: #222222,
+        textSubtle: #666666,
+        border: #E6E6E6,
+        primary: #6750A4,
+        onPrimary: #FFFFFF,
+        radius: 8px,
+        gap: 12px,
+        padding: 12px,
+        shadow_color: #00000022,
+        shadow_offset_x: 0px,
+        shadow_offset_y: 1px,
+        shadow_blur: 3px,
+    };
+}
+
+export global Dark {
+    out property <Theme> theme: {
+        bg: #121212,
+        surface: #1E1E1E,
+        text: #EEEEEE,
+        textSubtle: #AAAAAA,
+        border: #2A2A2A,
+        primary: #D0BCFF,
+        onPrimary: #1B1B1B,
+        radius: 8px,
+        gap: 12px,
+        padding: 12px,
+        shadow_color: #00000066,
+        shadow_offset_x: 0px,
+        shadow_offset_y: 1px,
+        shadow_blur: 3px,
+    };
+}
+
+export struct StatusColors { 
+    info: color, 
+    success: color, 
+    warn: color, 
+    error: color}
+
+export global StatusLight {
+    out property <StatusColors> colors: {
+        info: #2962FF,
+        success: #2E7D32,
+        warn: #E65100,
+        error: #C62828,
+    };
+}
+
+export global StatusDark {
+    out property <StatusColors> colors: {
+        info: #82B1FF,
+        success: #81C784,
+        warn: #FFB74D,
+        error: #EF9A9A,
+    };
+}

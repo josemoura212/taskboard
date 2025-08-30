@@ -1,0 +1,77 @@
+export component ToggleTheme inherits Rectangle {
+    width: 80px;
+    height: 40px;
+    in-out property <string> current_theme: "light";
+    callback toggle_theme();
+    Rectangle {
+        width: parent.width;
+        height: parent.height;
+        border-radius: 20px;
+        background: current_theme == "light" ? @linear-gradient(90deg, #F0F0F0 0%, #E0E0E0 100%) : @linear-gradient(90deg, #2A2A2A 0%, #3d3030 100%);
+        border-width: 1px;
+        border-color: current_theme == "light" ? #C0C0C0 : #404040;
+        animate background {
+            duration: 400ms;
+            easing: ease-in-out;
+        }
+        animate border-color {
+            duration: 400ms;
+            easing: ease-in-out;
+        }
+        drop-shadow-blur: 2px;
+        drop-shadow-color: current_theme == "light" ? #00000010 : #00000040;
+        drop-shadow-offset-y: 1px;
+        Rectangle {
+            width: 34px;
+            height: 34px;
+            border-radius: 17px;
+            background: @linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+            border-width: 1px;
+            border-color: #E0E0E0;
+            x: current_theme == "light" ? 3px : 43px;
+            y: 3px;
+            animate x {
+                duration: 500ms;
+                easing: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+            drop-shadow-blur: 6px;
+            drop-shadow-color: #00000025;
+            drop-shadow-offset-x: 0px;
+            drop-shadow-offset-y: 3px;
+            Text {
+                text: current_theme == "light" ? "☀" : "🌙";
+                font-size: 16px;
+                color: current_theme == "light" ? #FFA500 : #4169E1;
+                y: (parent.height - self.height + 7px) / 2;
+                x: (parent.width - self.width) / 2;
+                property <angle> rotation: current_theme == "light" ? 0deg : 360deg;
+                animate rotation {
+                    duration: 500ms;
+                    easing: ease-in-out;
+                }
+                rotation-angle: self.rotation;
+                rotation-origin-x: self.width / 2;
+                rotation-origin-y: self.height / 2;
+                animate color {
+                    duration: 300ms;
+                    easing: ease-in-out;
+                }
+            }
+        }
+
+        TouchArea {
+            clicked => {
+                root.toggle_theme();
+            }
+            mouse-cursor: pointer;
+        }
+
+        property <bool> hover: false;
+        TouchArea {
+            mouse-cursor: pointer;
+            clicked => {
+                root.toggle_theme();
+            }
+        }
+    }
+}

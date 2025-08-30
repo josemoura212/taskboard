@@ -1,48 +1,21 @@
 import { Button } from "std-widgets.slint";
-
-global AppColors {
-    out property <color> background: #2c3e50;
-    out property <color> primary: #3498db;
-    out property <color> success: #27ae60;
-    out property <color> danger: #e74c3c;
-    out property <color> text-primary: #ecf0f1;
-    out property <color> text-secondary: #bdc3c7;
-}
+import { Light, Dark, Theme, StatusColors, StatusLight, StatusDark } from "theme.slint";
+import { ToggleTheme } from "components/toggle-theme.slint";
+import { Main } from "pages/main.slint";
 
 export component AppWindow inherits Window {
     title: "TaskBoard — Slint Template";
-    background: AppColors.background;
-    icon: @image-url("./icon.png");
-    callback quit();
-    VerticalLayout {
-        padding: 16px;
-        spacing: 12px;
-        Text {
-            text: "Olá, Slint + Rust!"; 
-            font-size: 22px;
-            color: AppColors.text-primary;
-        }
-
-        Text {
-            text: "Este é o seu template base."; 
-            color: AppColors.text-secondary;
-        }
-
-        HorizontalLayout {
-            spacing: 8px;
-            Button {
-                text: "OK";
-                clicked => {
-                    root.title = "Clicou em OK";
-                }
-            }
-
-            Button {
-                text: "Sair";
-                clicked => {
-                    root.quit();
-                }
-            }
+    in-out property <string> current_theme: "light";
+    private property <Theme> theme: current_theme == "light" ? Light.theme : Dark.theme;
+    private property <StatusColors> status: current_theme == "light" ? StatusLight.colors : StatusDark.colors;
+    background: theme.bg;
+    icon: @image-url("../build/icon.png");
+    callback toggle_theme();
+    Main {
+        theme: root.theme;
+        current_theme: root.current_theme;
+        toggle_theme => {
+            root.toggle_theme();
         }
     }
 }

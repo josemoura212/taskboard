@@ -1,0 +1,47 @@
+
+import { ToggleTheme } from "../components/toggle-theme.slint";
+import { Light, Dark, Theme, StatusColors, StatusLight, StatusDark } from "../theme.slint";
+import { Button } from "std-widgets.slint";
+export component Main inherits Rectangle {
+    in-out property <string> current_theme;
+    in-out property <Theme> theme;
+    callback toggle_theme();
+    background: theme.bg;
+    animate background {
+        duration: 300ms;
+        easing: ease-in-out;
+    }
+    VerticalLayout {
+        spacing: theme.gap;
+        Rectangle {
+            height: 50px;
+            background: theme.surface;
+            border-color: theme.border;
+            drop-shadow-blur: theme.shadow_blur;
+            drop-shadow-color: theme.shadow_color;
+            drop-shadow-offset-x: theme.shadow_offset_x;
+            drop-shadow-offset-y: theme.shadow_offset_y;
+            HorizontalLayout {
+                padding: 4px;
+                Text {
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    text: "TaskBoard";
+                    font-size: 22px;
+                    color: theme.text;
+                }
+
+                Rectangle {
+                    min-width: 1px;
+                }
+
+                ToggleTheme {
+                    current_theme: root.current_theme;
+                    toggle_theme => {
+                        root.toggle_theme();
+                    }
+                }
+            }
+        }
+    }
+}
