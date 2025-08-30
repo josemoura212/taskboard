@@ -1,0 +1,20 @@
+/target
+
+# Arquivos de IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de build temporários
+*.tmp
+*.bak
+
+# Arquivos de release local
+installer/
+taskboard-portable/
+*.zip
