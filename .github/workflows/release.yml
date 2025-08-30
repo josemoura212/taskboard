@@ -19,9 +19,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: taiki-e/create-gh-release-action@v1
         with:
-          # (optional) Path to changelog.
-          changelog: CHANGELOG.md
-          # (required) GitHub token for creating GitHub Releases.
           token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
@@ -34,24 +31,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.26'
-
-      - name: Verify CMake installation
-        run: cmake --version
-        
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
-          # (required) Nome do binário a ser construído e enviado
-          bin: taskboard
-          # (optional) Target triple
+          bin: ...
           target: ${{ matrix.target }}
-          # (optional) On which platform to distribute the `.tar.gz` file.
-          tar: none
-          # (optional) On which platform to distribute the `.zip` file.
+          tar: windows
           zip: windows
-          # (required) GitHub token for uploading assets to GitHub Releases.
           token: ${{ secrets.GITHUB_TOKEN }}
